@@ -9,54 +9,54 @@ A comprehensive Django-based robotics control system for robot manipulation, tel
 
 ---
 
-## 📸 Application Overview
+## 📸 Application Screenshots
 
-### Dashboard
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  🤖 Robotics Control Dashboard                                   │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │ 🔌 Connect  │  │ 🎮 Control  │  │ 📷 Cameras  │              │
-│  │   Robot     │  │   Robot     │  │   View      │              │
-│  └─────────────┘  └─────────────┘  └─────────────┘              │
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │ 🎯 Calibrate│  │ 📊 Record   │  │ 🧠 Train    │              │
-│  │   Arms      │  │   Dataset   │  │   AI Model  │              │
-│  └─────────────┘  └─────────────┘  └─────────────┘              │
-│                                                                  │
-│  Status: ● Connected  |  Mode: Teleoperation  |  FPS: 30        │
-└──────────────────────────────────────────────────────────────────┘
-```
+### 🏠 Dashboard
+The main control center showing system status, connected robots, cameras, and quick access to all features.
 
-### Robot Manipulation Interface
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  🎮 Robot Manipulation                                           │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────────────────┐   ┌─────────────────────────┐      │
-│  │                         │   │                         │      │
-│  │    📷 Camera Feed 1     │   │    📷 Camera Feed 2     │      │
-│  │    (Wrist Camera)       │   │    (Overview Camera)    │      │
-│  │                         │   │                         │      │
-│  └─────────────────────────┘   └─────────────────────────┘      │
-│                                                                  │
-│  Joint Positions:                                                │
-│  ┌──────────────────────────────────────────────────────┐       │
-│  │ J1: ████████████░░░░░░  45°                          │       │
-│  │ J2: ██████████████████  90°                          │       │
-│  │ J3: ██████░░░░░░░░░░░░  30°                          │       │
-│  │ J4: ████████████████░░  80°                          │       │
-│  │ J5: ██████████░░░░░░░░  50°                          │       │
-│  │ J6: ████████████████████ 100° (Gripper)              │       │
-│  └──────────────────────────────────────────────────────┘       │
-│                                                                  │
-│  [▶ Start Teleop] [⏹ Stop] [⏺ Record] [💾 Save Motion]          │
-└──────────────────────────────────────────────────────────────────┘
-```
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+---
+
+### 🔌 Robot Connection
+Configure and connect to SO101 robot arms via serial USB ports.
+
+![Robot Connection](docs/screenshots/02-robot-connection.png)
+
+---
+
+### 🎮 Robot Manipulation
+Real-time robot control with teleoperation, joint monitoring, and motion recording.
+
+![Manipulation](docs/screenshots/03-manipulation.png)
+
+---
+
+### 🎯 Calibration
+Visual hand-eye calibration for precise robot-camera coordination.
+
+![Calibration](docs/screenshots/04-calibration.png)
+
+---
+
+### 🧠 AI Training
+Train imitation learning models from recorded demonstrations.
+
+![Training](docs/screenshots/05-training.png)
+
+---
+
+### 📷 Camera View
+Multi-camera feed display with Intel RealSense support.
+
+![Cameras](docs/screenshots/06-cameras.png)
+
+---
+
+### 📊 Dataset Management
+Browse, manage, and export recorded robot datasets.
+
+![Dataset](docs/screenshots/07-dataset.png)
 
 ---
 
