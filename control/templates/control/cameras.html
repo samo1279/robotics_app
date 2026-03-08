@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cameras - Robotics App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">R</div>
+                <h1 class="sidebar-title">Robotics App</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Manipulation</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link active"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Camera Access</h2>
+                <p class="header-subtitle">View and manage connected camera devices.</p>
+            </header>
+
+            <div class="card fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Available Cameras</h3>
+                </div>
+                <div class="card-body">
+                    {% if cameras %}
+                        <ul class="list-group">
+                        {% for cam in cameras %}
+                            <li class="list-group-item"><i class="fas fa-video mr-2"></i>{{ cam }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <strong>No cameras detected.</strong> Please ensure camera hardware is connected and configured.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

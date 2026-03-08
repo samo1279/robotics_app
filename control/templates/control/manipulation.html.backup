@@ -1,0 +1,562 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Manipulation - Advanced Control</title>
+    <link rel="stylesheet" href="{% static 'control/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <!-- Modern Navigation -->
+    <nav class="modern-navbar">
+        <div class="navbar-container">
+            <a href="{% url 'control:home' %}" class="navbar-brand">
+                <div class="brand-logo">🤖</div>
+                <span>RoboControl</span>
+            </a>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="{% url 'control:home' %}" class="navbar-link">
+                        <span>🏠</span> Dashboard
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="{% url 'control:manipulation' %}" class="navbar-link active">
+                        <span>🦾</span> Control
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="{% url 'control:train' %}" class="navbar-link">
+                        <span>🎓</span> Training
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="{% url 'control:ai_control' %}" class="navbar-link">
+                        <span>🧠</span> AI
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">Robot Manipulation</h1>
+            <p class="dashboard-subtitle">Multi-Mode Control: Real Hardware • MuJoCo Simulation • Isaac Sim 3D</p>
+        </header>
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-info { background: #17a2b8; color: white; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-connected { background: #28a745; }
+        .status-disconnected { background: #dc3545; }
+        .status-simulation { background: #ffc107; }
+        .joint-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .joint-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .joint-control input[type="range"] {
+            flex: 1;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            background: white;
+        }
+        .mode-btn.active {
+            border-color: #007bff;
+            background: #e7f3ff;
+        }
+        .mode-btn.sim-active {
+            border-color: #28a745;
+            background: #e8f5e8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦾 Arm Manipulation & Simulation Control</h1>
+    
+    <nav>
+        <ul>
+            <li><a href="{% url 'control:home' %}">Home</a></li>
+            <li><a href="{% url 'control:connect' %}">Connect</a></li>
+            <li><a href="{% url 'control:calibrate' %}">Calibrate</a></li>
+        </ul>
+    </nav>
+
+        <!-- Mode Selector -->
+        <section class="animate-fadeInUp">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-2xl);">
+                <!-- Real Robot Mode -->
+                <div class="feature-card {% if not simulation_mode and not isaac_mode %}active-mode{% endif %}" 
+                     onclick="window.location.href='?mode=real'" 
+                     style="cursor: pointer; {% if not simulation_mode and not isaac_mode %}border: 3px solid var(--color-primary); box-shadow: var(--shadow-xl);{% endif %}">
+                    <div class="feature-card-icon" style="background: var(--gradient-primary);">
+                        🤖
+                    </div>
+                    <h3 class="feature-card-title">Real Robot Mode</h3>
+                    <p class="feature-card-description">Control physical robot hardware with real-time teleoperation</p>
+                    {% if not simulation_mode and not isaac_mode %}
+                    <div class="badge badge-primary">
+                        <span>⚡</span> Active
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- MuJoCo Simulation -->
+                <div class="feature-card {% if simulation_mode %}active-mode{% endif %}" 
+                     onclick="window.location.href='?mode=simulation'" 
+                     style="cursor: pointer; {% if simulation_mode %}border: 3px solid var(--color-success); box-shadow: var(--shadow-xl);{% endif %}">
+                    <div class="feature-card-icon" style="background: var(--gradient-success);">
+                        🎮
+                    </div>
+                    <h3 class="feature-card-title">MuJoCo Simulation</h3>
+                    <p class="feature-card-description">Physics-based training with Human-in-the-Loop RL</p>
+                    {% if simulation_mode %}
+                    <div class="badge badge-success">
+                        <span>⚡</span> Active
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Isaac Sim -->
+                <div class="feature-card {% if isaac_mode %}active-mode{% endif %}" 
+                     onclick="window.location.href='?mode=isaac'" 
+                     style="cursor: pointer; {% if isaac_mode %}border: 3px solid var(--color-info); box-shadow: var(--shadow-xl);{% endif %}">
+                    <div class="feature-card-icon" style="background: var(--gradient-info);">
+                        🌟
+                    </div>
+                    <h3 class="feature-card-title">Isaac Sim 3D</h3>
+                    <p class="feature-card-description">Advanced photorealistic 3D visualization</p>
+                    {% if isaac_mode %}
+                    <div class="badge badge-info">
+                        <span>⚡</span> Active
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        </div>
+        <div class="mode-btn {% if simulation_mode %}sim-active{% endif %}" 
+             onclick="window.location.href='?mode=simulation'">
+            <h3>🎮 MuJoCo Simulation</h3>
+            <p>Train with gym_hil</p>
+        </div>
+        <div class="mode-btn {% if isaac_mode %}sim-active{% endif %}" 
+             onclick="window.location.href='?mode=isaac'">
+            <h3>🌟 Isaac Sim</h3>
+            <p>Advanced 3D visualization</p>
+        </div>
+    </div>
+
+    {% if action_result %}
+        <div class="{% if 'Error' in action_result %}error-message{% elif 'Simulation' in action_result %}info-message{% else %}success-message{% endif %}">
+            {{ action_result }}
+        </div>
+    {% endif %}
+
+    <div class="manipulation-container">
+        {% if isaac_mode %}
+            <!-- Isaac Sim Mode -->
+            <div class="panel sim-panel">
+                <h2>🌟 Isaac Sim Setup</h2>
+                
+                <form method="post" action="{% url 'control:manipulation' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="mode" value="isaac">
+                    
+                    <div class="form-group">
+                        <label for="robot_type">Robot Type:</label>
+                        <select id="robot_type" name="robot_type">
+                            <option value="SO-ARM101">SO-ARM101 (Dual Arm)</option>
+                            <option value="SO-ARM100">SO-ARM100 (Single Arm)</option>
+                            <option value="Franka-Panda">Franka Panda</option>
+                            <option value="UR5e">Universal Robots UR5e</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="urdf_file">URDF File (Optional):</label>
+                        <input type="file" id="urdf_file" name="urdf_file" accept=".urdf">
+                        <small>Upload custom URDF or use default robot model</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Visualization Features:</label>
+                        <div>
+                            <input type="checkbox" id="physics_sim" name="features" value="physics" checked>
+                            <label for="physics_sim">Physics Simulation</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="ros2_bridge" name="features" value="ros2" checked>
+                            <label for="ros2_bridge">ROS2 Bridge</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="real2sim" name="features" value="real2sim">
+                            <label for="real2sim">Real2Sim Teleoperation</label>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button type="submit" name="action" value="start_isaac" class="btn btn-success">Launch Isaac Sim</button>
+                        <button type="submit" name="action" value="load_robot" class="btn btn-info">Load Robot</button>
+                        <button type="submit" name="action" value="start_ros2" class="btn btn-warning">Start ROS2 Bridge</button>
+                        <button type="submit" name="action" value="stop_isaac" class="btn btn-danger">Stop Isaac Sim</button>
+                    </div>
+                </form>
+
+                <div class="form-group">
+                    <h3>Isaac Sim Status:</h3>
+                    <div>
+                        <span class="status-indicator {% if isaac_available %}status-connected{% else %}status-disconnected{% endif %}"></span>
+                        Isaac Sim: {% if isaac_available %}Available{% else %}Not Installed{% endif %}
+                    </div>
+                    <div>
+                        <span class="status-indicator {% if isaac_running %}status-connected{% else %}status-disconnected{% endif %}"></span>
+                        Simulation: {% if isaac_running %}Running{% else %}Stopped{% endif %}
+                    </div>
+                    <div>
+                        <span class="status-indicator status-simulation"></span>
+                        GPU Available: {% if gpu_available %}Yes{% else %}No{% endif %}
+                    </div>
+                </div>
+
+                {% if not isaac_available %}
+                <div class="info-message">
+                    <h4>📥 Isaac Sim Installation Required</h4>
+                    <p>To use advanced 3D visualization, you need to install NVIDIA Isaac Sim:</p>
+                    <ol>
+                        <li>Download from <a href="https://developer.nvidia.com/isaac-sim" target="_blank">NVIDIA Isaac Sim</a></li>
+                        <li>Install Isaac Sim 2023.1.1 or later</li>
+                        <li>Setup Python environment with isaac_sim</li>
+                        <li>Restart Django server</li>
+                    </ol>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="panel">
+                <h2>🎯 Isaac Sim Features</h2>
+                
+                <div class="form-group">
+                    <h3>Advanced Visualization:</h3>
+                    <ul>
+                        <li>🌟 Photorealistic 3D rendering</li>
+                        <li>🔬 Physics-based simulation</li>
+                        <li>📹 Multiple camera views</li>
+                        <li>💡 Advanced lighting & materials</li>
+                        <li>🌍 Realistic environments</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <h3>Robot Integration:</h3>
+                    <ul>
+                        <li>📁 URDF import & visualization</li>
+                        <li>🔗 ROS2 bridge integration</li>
+                        <li>🔄 Real2Sim teleoperation</li>
+                        <li>📊 Joint state visualization</li>
+                        <li>🎮 Interactive control</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <h3>Training Capabilities:</h3>
+                    <ul>
+                        <li>🤖 Synthetic data generation</li>
+                        <li>🧠 Reinforcement learning</li>
+                        <li>👥 Multi-robot scenarios</li>
+                        <li>🔬 Domain randomization</li>
+                        <li>📈 Sim2Real transfer</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <h3>Based on SO-ARM Tutorial Series:</h3>
+                    <ul>
+                        <li>📚 <a href="https://lycheeai-hub.com/project-so-arm101-x-isaac-sim-x-isaac-lab-tutorial-series" target="_blank">LycheeAI Hub Tutorials</a></li>
+                        <li>🤖 SO-ARM101 dual-arm robot support</li>
+                        <li>📖 Isaac Lab integration</li>
+                        <li>🎓 Complete learning path</li>
+                    </ul>
+                </div>
+            </div>
+
+        {% elif simulation_mode %}
+            <!-- MuJoCo Simulation Mode -->
+            <div class="panel sim-panel">
+                <h2>🎮 Simulation Setup</h2>
+                
+                <form method="post" action="{% url 'control:manipulation' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="mode" value="simulation">
+                    
+                    <div class="form-group">
+                        <label for="sim_task">Simulation Task:</label>
+                        <select id="sim_task" name="sim_task">
+                            <option value="PandaPickCubeGamepad-v0">Panda Pick Cube (Gamepad)</option>
+                            <option value="PandaPickCubeKeyboard-v0">Panda Pick Cube (Keyboard)</option>
+                            <option value="PandaPickCubeBase-v0">Panda Pick Cube (Basic)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Control Mode:</label>
+                        <div>
+                            <input type="radio" id="sim_gamepad" name="control_mode" value="gamepad" checked>
+                            <label for="sim_gamepad">Gamepad Control</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="sim_keyboard" name="control_mode" value="keyboard">
+                            <label for="sim_keyboard">Keyboard Control</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="episodes">Episodes to Record:</label>
+                        <input type="number" id="episodes" name="episodes" value="10" min="1" max="100">
+                    </div>
+
+                    <div class="control-buttons">
+                        <button type="submit" name="action" value="start_sim" class="btn btn-success">Start Simulation</button>
+                        <button type="submit" name="action" value="record_sim" class="btn btn-warning">Record Dataset</button>
+                        <button type="submit" name="action" value="train_sim" class="btn btn-info">Train Policy</button>
+                        <button type="submit" name="action" value="stop_sim" class="btn btn-danger">Stop Simulation</button>
+                    </div>
+                </form>
+
+                <div class="form-group">
+                    <h3>Simulation Status:</h3>
+                    <div>
+                        <span class="status-indicator status-simulation"></span>
+                        MuJoCo Environment: Ready
+                    </div>
+                    <div>
+                        <span class="status-indicator status-connected"></span>
+                        GPU Available: {% if gpu_available %}Yes{% else %}No{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎯 Simulation Control</h2>
+                
+                <div class="form-group">
+                    <h3>Keyboard Controls (Simulation):</h3>
+                    <p><strong>Movement:</strong> W/A/S/D (Forward/Left/Back/Right)</p>
+                    <p><strong>Vertical:</strong> Q/E (Up/Down)</p>
+                    <p><strong>Rotation:</strong> I/J/K/L (Pitch/Yaw)</p>
+                    <p><strong>Gripper:</strong> Space (Toggle), Enter (Activate)</p>
+                </div>
+
+                <div class="form-group">
+                    <h3>Simulation Environment:</h3>
+                    <ul>
+                        <li>Franka Panda Robot Arm</li>
+                        <li>Pick and Place Tasks</li>
+                        <li>MuJoCo Physics Engine</li>
+                        <li>Human-in-the-Loop Training</li>
+                        <li>Policy Learning with RL</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <h3>Training Features:</h3>
+                    <ul>
+                        <li>Collect demonstration data</li>
+                        <li>Human interventions during learning</li>
+                        <li>Real-time policy updates</li>
+                        <li>Safe training environment</li>
+                    </ul>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Real Robot Mode -->
+            <div class="panel real-panel">
+                <h2>🤖 Real Robot Setup</h2>
+                
+                <form method="post" action="{% url 'control:manipulation' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="mode" value="real">
+                    
+                    <div class="form-group">
+                        <label for="leader_arm">Leader Arm:</label>
+                        <select id="leader_arm" name="leader_arm">
+                            <option value="">Select Leader Arm...</option>
+                            {% for robot in robots %}
+                            <option value="{{ robot.port }}">{{ robot.name }} ({{ robot.port }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="follower_arm">Follower Arm:</label>
+                        <select id="follower_arm" name="follower_arm">
+                            <option value="">Select Follower Arm...</option>
+                            {% for robot in robots %}
+                            <option value="{{ robot.port }}">{{ robot.name }} ({{ robot.port }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Control Mode:</label>
+                        <div>
+                            <input type="radio" id="leader_control" name="control_mode" value="leader" checked>
+                            <label for="leader_control">Leader Arm Control</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="keyboard_control" name="control_mode" value="keyboard">
+                            <label for="keyboard_control">Keyboard Control</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="manual_control" name="control_mode" value="manual">
+                            <label for="manual_control">Manual Joint Control</label>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button type="submit" name="action" value="start" class="btn btn-success">Start Teleoperation</button>
+                        <button type="submit" name="action" value="stop" class="btn btn-danger">Stop Teleoperation</button>
+                        <button type="submit" name="action" value="emergency" class="btn btn-danger">Emergency Stop</button>
+                    </div>
+                </form>
+
+                <div class="form-group">
+                    <h3>Connection Status:</h3>
+                    <div>
+                        <span class="status-indicator status-disconnected"></span>
+                        Leader: Disconnected
+                    </div>
+                    <div>
+                        <span class="status-indicator status-disconnected"></span>
+                        Follower: Disconnected
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <h3>Detected Robots:</h3>
+                    {% if robots %}
+                        <ul>
+                        {% for robot in robots %}
+                            <li><strong>{{ robot.name }}</strong> - {{ robot.port }} ({{ robot.description }})</li>
+                        {% endfor %}
+                        </ul>
+                        <p><strong>Total: {{ robots|length }} robot(s) detected</strong></p>
+                    {% else %}
+                        <p>No robots detected. Please connect robots first.</p>
+                        <a href="{% url 'control:connect' %}" class="btn btn-primary">Go to Connect</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎛️ Real Robot Control</h2>
+                
+                <div class="joint-controls">
+                    <div class="joint-control">
+                        <label>Shoulder Pan:</label>
+                        <input type="range" min="-180" max="180" value="0" disabled>
+                        <span>0°</span>
+                    </div>
+                    <div class="joint-control">
+                        <label>Shoulder Lift:</label>
+                        <input type="range" min="-90" max="90" value="0" disabled>
+                        <span>0°</span>
+                    </div>
+                    <div class="joint-control">
+                        <label>Elbow Flex:</label>
+                        <input type="range" min="-180" max="180" value="0" disabled>
+                        <span>0°</span>
+                    </div>
+                    <div class="joint-control">
+                        <label>Wrist Flex:</label>
+                        <input type="range" min="-90" max="90" value="0" disabled>
+                        <span>0°</span>
+                    </div>
+                    <div class="joint-control">
+                        <label>Wrist Roll:</label>
+                        <input type="range" min="-180" max="180" value="0" disabled>
+                        <span>0°</span>
+                    </div>
+                    <div class="joint-control">
+                        <label>Gripper:</label>
+                        <input type="range" min="0" max="100" value="50" disabled>
+                        <span>50%</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <h3>Current Position:</h3>
+                    <div>X: 0.00 m | Y: 0.00 m | Z: 0.00 m</div>
+                </div>
+
+                <div class="form-group">
+                    <h3>Real Robot Controls:</h3>
+                    <p>W/S: Forward/Backward | A/D: Left/Right | Q/E: Up/Down | Space: Gripper</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

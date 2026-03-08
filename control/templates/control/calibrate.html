@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Calibration - Premium Robotics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🤖</div>
+                <h1 class="sidebar-title">RoboControl</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Control</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link active"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Robot Calibration</h2>
+                <p class="header-subtitle">Calibrate leader and follower arms for precise teleoperation based on LeRobot standards.</p>
+            </header>
+
+            {% if messages %}
+                <div class="fade-in-up" style="animation-delay: 50ms;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <strong><i class="fas fa-info-circle"></i> {{ message.tags|title }}</strong>
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- 3D Visual Calibration Guide - ALWAYS VISIBLE -->
+            <div class="feature-card fade-in-up" style="animation-delay: 100ms; background: var(--gradient-primary); border: none;">
+                <div class="card-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h3 class="card-title" style="color: white;">
+                        <i class="fas fa-cube"></i> 3D Visual Calibration Guide
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.7; margin-bottom: var(--spacing-lg);">
+                        <i class="fas fa-magic"></i> Experience an interactive step-by-step calibration guide with real-time 3D visualization of your SO-ARM100 assembly. Each calibration step shows the exact joint positions and provides detailed instructions to ensure perfect alignment.
+                    </p>
+                    <div style="display: flex; gap: var(--spacing-lg); flex-wrap: wrap; margin-bottom: var(--spacing-lg);">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: var(--spacing-md); border-radius: var(--radius-md); backdrop-filter: blur(10px);">
+                                <div style="font-size: 32px; font-weight: 800; color: white; margin-bottom: 4px;">10</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.5px;">Guided Steps</div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: var(--spacing-md); border-radius: var(--radius-md); backdrop-filter: blur(10px);">
+                                <div style="font-size: 32px; font-weight: 800; color: white; margin-bottom: 4px;">3D</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.5px;">STL Model View</div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: var(--spacing-md); border-radius: var(--radius-md); backdrop-filter: blur(10px);">
+                                <div style="font-size: 32px; font-weight: 800; color: white; margin-bottom: 4px;"><i class="fas fa-check"></i></div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.5px;">Step by Step</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'control:visual_calibration' %}" class="btn btn-lg" style="background: white; color: var(--color-primary); font-weight: 700; box-shadow: var(--shadow-xl); width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <i class="fas fa-play-circle"></i>
+                        <span>Launch Interactive 3D Calibration Guide</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            {% if config_missing or config_incomplete %}
+                <div class="feature-card fade-in-up" style="animation-delay: 150ms;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Configuration Required for Physical Calibration</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <strong><i class="fas fa-exclamation-triangle"></i> Robot arms are not configured</strong>
+                            <p>To perform physical calibration with real robot arms, you need to:</p>
+                            <ol style="margin: var(--spacing-sm) 0 var(--spacing-sm) var(--spacing-lg);">
+                                <li>Connect both SO-101 leader and follower arms to your computer</li>
+                                <li>Configure the arms on the connection page</li>
+                                <li>Return here to perform physical calibration</li>
+                            </ol>
+                            <p style="margin-top: var(--spacing-md);"><strong>Note:</strong> You can still explore the 3D Visual Calibration Guide above without configuring robot arms.</p>
+                        </div>
+                        <a href="{% url 'control:connect' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plug"></i>
+                            <span>Go to Connection Page</span>
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Show Current Configuration -->
+                <div class="glass-card fade-in-up" style="animation-delay: 100ms;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-robot"></i> Current Robot Configuration</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">
+                                        <i class="fas fa-gamepad"></i>
+                                    </div>
+                                    <h4 style="font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--spacing-sm);">Leader Arm</h4>
+                                    <p class="text-secondary"><strong>Port:</strong> {{ config.leader_arm.port }}</p>
+                                    <p class="text-secondary"><strong>ID:</strong> {{ config.leader_arm.id }}</p>
+                                    <p class="text-secondary"><strong>Type:</strong> {{ config.leader_arm.type }}</p>
+                                    {% if config.calibrated %}
+                                        <span class="badge badge-success mt-2">
+                                            <i class="fas fa-check-circle"></i> Calibrated
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-warning mt-2">
+                                            <i class="fas fa-exclamation-circle"></i> Not Calibrated
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card">
+                                    <div class="stat-card-icon" style="background: var(--gradient-secondary);">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <h4 style="font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--spacing-sm);">Follower Arm</h4>
+                                    <p class="text-secondary"><strong>Port:</strong> {{ config.follower_arm.port }}</p>
+                                    <p class="text-secondary"><strong>ID:</strong> {{ config.follower_arm.id }}</p>
+                                    <p class="text-secondary"><strong>Type:</strong> {{ config.follower_arm.type }}</p>
+                                    {% if config.calibrated %}
+                                        <span class="badge badge-success mt-2">
+                                            <i class="fas fa-check-circle"></i> Calibrated
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-warning mt-2">
+                                            <i class="fas fa-exclamation-circle"></i> Not Calibrated
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Physical Calibration Guide (when robots configured) -->
+            <div class="card fade-in-up mb-4" style="animation-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-info-circle"></i> SO-101 Physical Calibration Guide</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Important:</strong> Proper calibration ensures leader and follower arms have identical position values when in the same physical position. This is critical for neural network training across different robots.
+                    </div>
+                    
+                    <h5 class="mt-3"><i class="fas fa-robot"></i> SO-101 Arm Configuration</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="calibration-info-box">
+                                <h6><strong>Follower Arm Motors:</strong></h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr><th>Joint</th><th>ID</th><th>Gearing</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Base / Shoulder Pan</td><td>1</td><td>1 / 345</td></tr>
+                                        <tr><td>Shoulder Lift</td><td>2</td><td>1 / 345</td></tr>
+                                        <tr><td>Elbow Flex</td><td>3</td><td>1 / 345</td></tr>
+                                        <tr><td>Wrist Flex</td><td>4</td><td>1 / 345</td></tr>
+                                        <tr><td>Wrist Roll</td><td>5</td><td>1 / 345</td></tr>
+                                        <tr><td>Gripper</td><td>6</td><td>1 / 345</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="calibration-info-box">
+                                <h6><strong>Leader Arm Motors:</strong></h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr><th>Joint</th><th>ID</th><th>Gearing</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Base / Shoulder Pan</td><td>1</td><td>1 / 191</td></tr>
+                                        <tr><td>Shoulder Lift</td><td>2</td><td>1 / 345</td></tr>
+                                        <tr><td>Elbow Flex</td><td>3</td><td>1 / 191</td></tr>
+                                        <tr><td>Wrist Flex</td><td>4</td><td>1 / 147</td></tr>
+                                        <tr><td>Wrist Roll</td><td>5</td><td>1 / 147</td></tr>
+                                        <tr><td>Gripper</td><td>6</td><td>1 / 147</td></tr>
+                                    </tbody>
+                                </table>
+                                <p class="text-muted small mt-2">Leader arm uses different gearing to sustain its weight while allowing easy manual movement.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4"><i class="fas fa-tasks"></i> Calibration Steps</h5>
+                    <ol class="calibration-steps">
+                        <li><strong>Position to Zero:</strong> Move both robot arms to the position where all joints are in the middle of their ranges.</li>
+                        <li><strong>Press Enter:</strong> After confirming the position, press Enter to record the zero position.</li>
+                        <li><strong>Full Range Motion:</strong> Move each joint through its full range of motion when prompted.</li>
+                        <li><strong>Verify Alignment:</strong> Ensure both leader and follower arms report identical position values when physically aligned.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Calibration Form -->
+            <div class="card fade-in-up" style="animation-delay: 200ms;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-play-circle"></i> Start Calibration</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p><strong>Ready to calibrate:</strong></p>
+                        <ul>
+                            <li>Leader Arm: <strong>{{ config.leader_arm.id }}</strong> on port {{ config.leader_arm.port }}</li>
+                            <li>Follower Arm: <strong>{{ config.follower_arm.id }}</strong> on port {{ config.follower_arm.port }}</li>
+                        </ul>
+                    </div>
+                    
+                    <p>Ensure both arms are powered on and connected. Follow the calibration steps above.</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="calibrate" class="btn btn-success btn-large">
+                            <i class="fas fa-cogs"></i> Start Calibration Process
+                        </button>
+                    </form>
+                    
+                    {% if config.calibrated %}
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check-circle"></i> This configuration was previously calibrated on {{ config.calibration_date }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

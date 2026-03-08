@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Control - Robotics App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">R</div>
+                <h1 class="sidebar-title">Robotics App</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Manipulation</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">AI Control</h2>
+                <p class="header-subtitle">Engage autonomous control using a trained model.</p>
+            </header>
+
+            <div class="card fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Engage AI Model</h3>
+                </div>
+                <div class="card-body">
+                    {% if message %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% else %}
+                        {% if models %}
+                            <form method="post" class="form-group">
+                                {% csrf_token %}
+                                <label for="model" class="form-label">Select a trained model:</label>
+                                <select name="model" id="model" class="form-control">
+                                {% for model in models %}
+                                    <option value="{{ model }}">{{ model }}</option>
+                                {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary mt-3">Start AI Control</button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <strong>No models found.</strong> Please <a href="{% url 'control:train' %}" class="alert-link">train a model</a> before attempting to use AI control.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

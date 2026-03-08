@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Dataset - Robotics App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">R</div>
+                <h1 class="sidebar-title">Robotics App</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Manipulation</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Record Dataset</h2>
+                <p class="header-subtitle">Capture robot states and sensor data for AI training.</p>
+            </header>
+
+            <div class="card fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header">
+                    <h3 class="card-title">Recording Control</h3>
+                </div>
+                <div class="card-body">
+                    {% if message %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endif %}
+                    
+                    {% if recording %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-circle-notch fa-spin mr-2"></i>
+                            <strong>Recording is in progress...</strong>
+                        </div>
+                        <form method="post" class="mt-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="stop">
+                            <button type="submit" class="btn btn-danger">Stop Recording</button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-secondary">
+                           Ready to start recording a new dataset.
+                        </div>
+                        <form method="post" class="mt-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="start">
+                            <button type="submit" class="btn btn-success">Start Recording</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

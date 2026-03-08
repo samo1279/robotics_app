@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Training - Robotics App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">R</div>
+                <h1 class="sidebar-title">Robotics App</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Manipulation</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:dataset' %}" class="nav-link"><i class="fas fa-database"></i><span>Datasets</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link active"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">AI Model Training</h2>
+                <p class="header-subtitle">Train new models from your datasets.</p>
+            </header>
+
+            <div class="row">
+                <!-- Left Column: Start Training Job -->
+                <div class="col-md-5">
+                    <div class="card fade-in-up" style="animation-delay: 100ms;">
+                        <div class="card-header">
+                            <h3 class="card-title">Start a New Training Run</h3>
+                        </div>
+                        <div class="card-body">
+                            {% if datasets %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="dataset" class="form-label">1. Select Dataset</label>
+                                        <select name="dataset_id" id="dataset" class="form-control" required>
+                                            {% for ds in datasets %}
+                                                <option value="{{ ds.id }}">{{ ds.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label for="model-type" class="form-label">2. Choose Model Type</label>
+                                        <select name="model_type" id="model-type" class="form-control">
+                                            <option value="behavioral_cloning">Behavioral Cloning</option>
+                                            <option value="diffusion_policy" disabled>Diffusion Policy (Soon)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label for="learning-rate" class="form-label">3. Set Learning Rate</label>
+                                        <input type="number" name="learning_rate" id="learning-rate" class="form-control" value="0.001" step="0.0001">
+                                    </div>
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-play-circle"></i> Start Training
+                                        </button>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <strong>No datasets available.</strong> Please <a href="{% url 'control:dataset' %}" class="alert-link">create a dataset</a> first.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Training Runs -->
+                <div class="col-md-7">
+                    <div class="card fade-in-up" style="animation-delay: 200ms;">
+                        <div class="card-header">
+                            <h3 class="card-title">Training Runs</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for run in training_runs %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="mb-1">{{ run.model_name }}</h5>
+                                            <span class="badge badge-{{ run.get_status_display|lower }}">{{ run.status }}</span>
+                                        </div>
+                                        <p class="mb-1 text-muted">Dataset: {{ run.dataset.name }} | Started: {{ run.start_time|date:"Y-m-d H:i" }}</p>
+                                        <div class="progress mt-2" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ run.progress }}%;" aria-valuenow="{{ run.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-center text-muted">No training runs yet.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

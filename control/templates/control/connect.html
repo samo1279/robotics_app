@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect to Robot - Premium Robotics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🤖</div>
+                <h1 class="sidebar-title">RoboControl</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link active"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Control</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Robot Connection</h2>
+                <p class="header-subtitle">Scan for and configure SO-101 leader and follower arms with precision.</p>
+            </header>
+
+            {% if messages %}
+                <div class="fade-in-up" style="animation-delay: 50ms;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <strong><i class="fas fa-info-circle"></i> {{ message.tags|title }}</strong>
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Port Discovery Section -->
+            <div class="glass-card fade-in-up" style="animation-delay: 100ms;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-search"></i> Detected Serial Ports</h3>
+                </div>
+                <div class="card-body">
+                    {% if available_ports %}
+                        <p class="text-secondary mb-3">The following serial ports were detected on your system:</p>
+                        <div class="port-list">
+                            {% for port in available_ports %}
+                                <div class="port-item">
+                                    <i class="fas fa-usb"></i>
+                                    <span class="port-name">{{ port.device }}</span>
+                                    {% if port.description %}
+                                        <span class="port-description">{{ port.description }}</span>
+                                    {% endif %}
+                                    {% if port.manufacturer %}
+                                        <span class="port-manufacturer">{{ port.manufacturer }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <strong><i class="fas fa-exclamation-triangle"></i> No robot arms detected</strong>
+                            <p>Please ensure both SO-101 arms are:</p>
+                            <ul style="margin: var(--spacing-sm) 0 var(--spacing-sm) var(--spacing-lg);">
+                                <li>Powered on</li>
+                                <li>Connected via USB to this computer</li>
+                                <li>Using the correct USB drivers (Feetech UART board CH340)</li>
+                            </ul>
+                            <form method="post" action="{% url 'control:connect' %}" style="margin-top: var(--spacing-md);">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="refresh" class="btn btn-primary">
+                                    <i class="fas fa-sync"></i>
+                                    <span>Refresh Port List</span>
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if available_ports %}
+            <!-- Robot Arm Configuration Form -->
+            <form method="post" action="{% url 'control:connect' %}">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Leader Arm Configuration -->
+                    <div class="col-md-6">
+                        <div class="feature-card fade-in-up" style="animation-delay: 200ms;">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-gamepad"></i> Leader Arm (Teleoperation)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="leader_port" class="form-label">Select Leader Arm Port:</label>
+                                    <select name="leader_port" id="leader_port" class="form-control" required>
+                                        <option value="">Choose a port...</option>
+                                        {% for port in available_ports %}
+                                            <option value="{{ port.device }}">{{ port.device }}{% if port.description %} - {{ port.description }}{% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text">This arm will be used for manual teleoperation control.</small>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <strong><i class="fas fa-info-circle"></i> Leader Arm Specs</strong>
+                                    <p style="margin-top: var(--spacing-xs); font-size: 13px;">Variable gearing ratios:<br>
+                                    • Joints 1, 3: 1/191<br>
+                                    • Joint 2: 1/345<br>
+                                    • Joints 4-6: 1/147</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follower Arm Configuration -->
+                    <div class="col-md-6">
+                        <div class="feature-card fade-in-up" style="animation-delay: 250ms;">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-robot"></i> Follower Arm (Execution)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="follower_port" class="form-label">Select Follower Arm Port:</label>
+                                    <select name="follower_port" id="follower_port" class="form-control" required>
+                                        <option value="">Choose a port...</option>
+                                        {% for port in available_ports %}
+                                            <option value="{{ port.device }}">{{ port.device }}{% if port.description %} - {{ port.description }}{% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text">This arm will execute the mirrored commands.</small>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <strong><i class="fas fa-info-circle"></i> Follower Arm Specs</strong>
+                                    <p style="margin-top: var(--spacing-xs); font-size: 13px;">Uniform gearing ratio:<br>
+                                    • All joints: 1/345</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Configuration Button -->
+                <div class="fade-in-up" style="animation-delay: 300ms; margin-top: var(--spacing-lg);">
+                    <div class="glass-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Save Configuration</h3>
+                                <p class="text-tertiary" style="font-size: 14px;">Review your selections and save to proceed to calibration.</p>
+                            </div>
+                            <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i>
+                                <span>Save & Continue</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=d            .joint-label {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+        
+        /* Joint Info Tooltip */
+        .joint-info-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.6);
+            border-radius: var(--radius-lg);
+            padding: 20px 30px;
+            z-index: 101;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            animation: slideDown 0.3s ease;
+        }
+        
+        .joint-info-box.active {
+            display: block;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .joint-info-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .joint-info-desc {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {th, initial-scale=1.0">
+    <title>3D Visual Calibration - Premium Robotics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+    
+    <style>
+        /* Import Three.js modules */
+    </style>
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <style>
+        .viewer-container {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: var(--shadow-2xl), var(--glow-primary);
+        }
+        
+        #stl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .viewer-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .viewer-btn {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .viewer-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            border-color: rgba(99, 102, 241, 0.8);
+            transform: translateX(-5px);
+        }
+        
+        /* Joint Selector Panel */
+        .joint-selector-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.6);
+            border-radius: var(--radius-lg);
+            padding: 15px;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+        
+        .joint-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .joint-btn {
+            width: 70px;
+            height: 60px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .joint-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .joint-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        .joint-num {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .joint-label {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .joint-selector-panel {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+            
+            .joint-btn {
+                width: 55px;
+                height: 50px;
+            }
+            
+            .joint-num {
+                font-size: 16px;
+            }
+            
+            .joint-label {
+                font-size: 8px;
+            }
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .step-card {
+            background: var(--glass-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            box-shadow: var(--glow-primary);
+            flex-shrink: 0;
+        }
+        
+        .step-info {
+            flex-grow: 1;
+        }
+        
+        .step-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .step-meta {
+            display: flex;
+            gap: var(--spacing-md);
+            font-size: 13px;
+            color: var(--color-text-tertiary);
+        }
+        
+        .step-instructions {
+            background: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--color-primary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .step-instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .step-instructions li {
+            margin-bottom: 8px;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--color-surface);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: width var(--transition-slow);
+            border-radius: var(--radius-full);
+        }
+        
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .joint-position-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .joint-value {
+            background: rgba(99, 102, 241, 0.1);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+        
+        .joint-label {
+            font-size: 11px;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .joint-angle {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary-light);
+            font-family: var(--font-family-mono);
+        }
+        
+        .completion-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--color-success);
+            border-radius: var(--radius-full);
+            color: var(--color-success);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Sidebar Toggle Button */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: 2px solid rgba(99, 102, 241, 0.6);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1031;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle-btn:hover {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .sidebar-toggle-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Sidebar hidden state */
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        
+        /* Main content expanded when sidebar hidden */
+        .main-content.expanded {
+            margin-left: 0 !important;
+        }
+        
+        /* Smooth transitions */
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar Toggle Button -->
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🤖</div>
+                <h1 class="sidebar-title">RoboControl</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Control</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link active"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content" id="main-content" style="padding-top: 32px;">
+            <header class="header fade-in" style="margin-bottom: 32px;">
+                <h2 class="header-title">3D Visual Calibration</h2>
+                <p class="header-subtitle">Interactive step-by-step calibration guide with real-time 3D visualization</p>
+            </header>
+
+            {% if messages %}
+                <div class="fade-in-up" style="animation-delay: 50ms;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <strong><i class="fas fa-info-circle"></i> {{ message.tags|title }}</strong>
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if config_missing or config_incomplete %}
+                <div class="feature-card fade-in-up" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-info-circle"></i> Preview Mode - Configuration Needed Later</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <strong><i class="fas fa-lightbulb"></i> Preview Mode Active</strong>
+                            <p>You're viewing the 3D calibration guide in preview mode. To perform actual calibration, you'll need to configure your robot arms first. For now, explore the interface and see how the calibration process works!</p>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'control:connect' %}" class="btn btn-primary">
+                                <i class="fas fa-plug"></i>
+                                <span>Configure Arms Now</span>
+                            </a>
+                            <a href="#3d-viewer" class="btn btn-secondary" onclick="document.getElementById('3d-viewer').scrollIntoView({behavior: 'smooth'});">
+                                <i class="fas fa-cube"></i>
+                                <span>Continue Preview</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Progress Bar (shown in preview and active mode) -->
+                <div class="glass-card fade-in-up" style="animation-delay: 100ms; margin-bottom: 24px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 style="font-size: 18px; font-weight: 700;">Calibration Progress</h3>
+                        <span class="badge badge-primary">Step {{ current_step }} of {{ total_steps }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+                    </div>
+                    <p class="text-secondary" style="font-size: 14px; margin-top: 8px;">
+                        <i class="fas fa-clock"></i> Estimated time remaining: {{ current_step_data.duration }}
+                    </p>
+                </div>
+
+                <!-- 3D STL Viewer -->
+                <div class="glass-card fade-in-up" style="animation-delay: 200ms; margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-cube"></i> 3D Arm Visualization</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="viewer-container">
+                            <canvas id="stl-canvas"></canvas>
+                            
+                            <div class="loading-overlay" id="loading-overlay">
+                                <div class="loading-spinner"></div>
+                                <p style="color: var(--color-text-secondary); margin-top: 20px; font-size: 14px;">Loading 3D model...</p>
+                            </div>
+                            
+                            <!-- Joint Info Box -->
+                            <div class="joint-info-box" id="joint-info-box">
+                                <div class="joint-info-title">
+                                    <span id="joint-info-icon" style="font-size: 32px;">●</span>
+                                    <div>
+                                        <div id="joint-info-name" style="font-size: 24px;">Joint 1 - Base</div>
+                                    </div>
+                                </div>
+                                <div class="joint-info-desc" id="joint-info-desc">
+                                    Base rotation joint - Rotates the entire arm horizontally (±180°)
+                                </div>
+                            </div>
+                            
+                            <div class="viewer-controls">
+                                <button class="viewer-btn" onclick="resetCamera()">
+                                    <i class="fas fa-redo"></i>
+                                    <span>Reset View</span>
+                                </button>
+                                <button class="viewer-btn" onclick="toggleWireframe()">
+                                    <i class="fas fa-project-diagram"></i>
+                                    <span>Wireframe</span>
+                                </button>
+                                <button class="viewer-btn" onclick="toggleGrid()">
+                                    <i class="fas fa-th"></i>
+                                    <span>Grid</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Joint Selector Panel -->
+                            <div class="joint-selector-panel">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">
+                                    <i class="fas fa-hand-pointer"></i> Click Joint
+                                </div>
+                                <div class="joint-buttons">
+                                    <button class="joint-btn" onclick="highlightJoint(1)" style="background: #ff6b6b;">
+                                        <span class="joint-num">1</span>
+                                        <span class="joint-label">Base</span>
+                                    </button>
+                                    <button class="joint-btn" onclick="highlightJoint(2)" style="background: #4ecdc4;">
+                                        <span class="joint-num">2</span>
+                                        <span class="joint-label">Shoulder</span>
+                                    </button>
+                                    <button class="joint-btn" onclick="highlightJoint(3)" style="background: #45b7d1;">
+                                        <span class="joint-num">3</span>
+                                        <span class="joint-label">Elbow</span>
+                                    </button>
+                                    <button class="joint-btn" onclick="highlightJoint(4)" style="background: #f7b731;">
+                                        <span class="joint-num">4</span>
+                                        <span class="joint-label">Wrist F</span>
+                                    </button>
+                                    <button class="joint-btn" onclick="highlightJoint(5)" style="background: #5f27cd;">
+                                        <span class="joint-num">5</span>
+                                        <span class="joint-label">Wrist R</span>
+                                    </button>
+                                    <button class="joint-btn" onclick="highlightJoint(6)" style="background: #00d2d3;">
+                                        <span class="joint-num">6</span>
+                                        <span class="joint-label">Gripper</span>
+                                    </button>
+                                </div>
+                            </div>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Joint Positions Display -->
+                        <div style="padding: var(--spacing-lg); background: var(--color-surface);">
+                            <h4 style="font-size: 14px; font-weight: 600; color: var(--color-text-tertiary); margin-bottom: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Target Joint Positions
+                            </h4>
+                            <div class="joint-position-display">
+                                {% for position in current_step_data.joint_positions %}
+                                    <div class="joint-value">
+                                        <div class="joint-label">Joint {{ forloop.counter }}</div>
+                                        <div class="joint-angle">{{ position }}°</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Step Instructions -->
+                <div class="step-card fade-in-up" style="animation-delay: 300ms; margin-top: 32px;">
+                    <div class="step-header">
+                        <div class="step-number">
+                            <i class="fas {{ current_step_data.icon }}"></i>
+                        </div>
+                        <div class="step-info">
+                            <div class="step-title">{{ current_step_data.title }}</div>
+                            <div class="step-meta">
+                                <span><i class="fas fa-clock"></i> {{ current_step_data.duration }}</span>
+                                <span><i class="fas fa-list-ol"></i> Step {{ current_step }} of {{ total_steps }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.7;">
+                        {{ current_step_data.description }}
+                    </p>
+                    
+                    <div class="step-instructions">
+                        <strong style="color: var(--color-text-primary); font-size: 15px; display: block; margin-bottom: 12px;">
+                            <i class="fas fa-list-check"></i> Instructions:
+                        </strong>
+                        <ol>
+                            {% for instruction in current_step_data.instructions %}
+                                <li>{{ instruction }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    
+                    <!-- Step Navigation -->
+                    <div class="step-navigation">
+                        {% if current_step > 1 %}
+                            <a href="?step={{ current_step|add:-1 }}" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Previous Step</span>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'control:calibrate' %}" class="btn btn-ghost">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Back to Calibration</span>
+                            </a>
+                        {% endif %}
+                        
+                        {% if current_step < total_steps %}
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="complete_step">
+                                <input type="hidden" name="step" value="{{ current_step }}">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <span>Complete Step</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="start_calibration">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check"></i>
+                                    <span>Finish & Save Calibration</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- All Steps Overview -->
+                <div class="glass-card fade-in-up" style="animation-delay: 400ms; margin-top: 32px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-route"></i> All Calibration Steps</h3>
+                        <p style="font-size: 14px; color: var(--color-text-secondary); margin-top: 8px;">Click any step to jump directly to it</p>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--spacing-lg);">
+                            {% for step in calibration_steps %}
+                                <a href="?step={{ step.step }}" style="text-decoration: none;">
+                                    <div class="step-card-modern {% if step.step == current_step %}active{% endif %}" 
+                                         style="background: {% if step.step == current_step %}linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%){% else %}var(--glass-background){% endif %}; 
+                                                border: 2px solid {% if step.step == current_step %}var(--color-primary){% elif step.step < current_step %}rgba(34, 197, 94, 0.4){% else %}rgba(99, 102, 241, 0.2){% endif %}; 
+                                                backdrop-filter: blur(20px); 
+                                                border-radius: var(--radius-lg); 
+                                                padding: var(--spacing-lg); 
+                                                transition: all var(--transition-base);
+                                                cursor: pointer;
+                                                position: relative;
+                                                overflow: hidden;">
+                                        
+                                        <!-- Status Badge Top Right -->
+                                        <div style="position: absolute; top: 12px; right: 12px;">
+                                            {% if step.step < current_step %}
+                                                <span class="badge badge-success" style="font-size: 11px; padding: 4px 10px;">
+                                                    <i class="fas fa-check-circle"></i> Done
+                                                </span>
+                                            {% elif step.step == current_step %}
+                                                <span class="badge badge-primary" style="font-size: 11px; padding: 4px 10px;">
+                                                    <i class="fas fa-circle-notch fa-spin"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge" style="font-size: 11px; padding: 4px 10px; background: rgba(99, 102, 241, 0.1); color: var(--color-primary);">
+                                                    <i class="fas fa-clock"></i> Pending
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Step Number Circle -->
+                                        <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px;">
+                                            <div style="width: 56px; height: 56px; min-width: 56px; background: {% if step.step <= current_step %}var(--gradient-primary){% else %}rgba(99, 102, 241, 0.15){% endif %}; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: {% if step.step <= current_step %}white{% else %}var(--color-primary){% endif %}; box-shadow: {% if step.step <= current_step %}var(--shadow-xl){% else %}none{% endif %};">
+                                                {% if step.step < current_step %}
+                                                    <i class="fas fa-check"></i>
+                                                {% else %}
+                                                    {{ step.step }}
+                                                {% endif %}
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 4px;">
+                                                    STEP {{ step.step }} OF 10
+                                                </div>
+                                                <h4 style="font-size: 17px; font-weight: 700; color: var(--color-text-primary); margin: 0; line-height: 1.3;">
+                                                    {{ step.title }}
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Description -->
+                                        <p style="font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+                                            {{ step.description }}
+                                        </p>
+                                        
+                                        <!-- Duration Badge -->
+                                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(99, 102, 241, 0.08); border-radius: var(--radius-md); font-size: 13px; color: var(--color-text-secondary);">
+                                            <i class="fas fa-clock" style="color: var(--color-primary);"></i>
+                                            <span><strong>Duration:</strong> {{ step.duration }}</span>
+                                        </div>
+                                        
+                                        <!-- Hover Effect Overlay -->
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary); transform: scaleX(0); transition: transform 0.3s ease;"></div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+        </main>
+    </div>
+    
+    <style>
+        .step-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        .step-card-modern:hover > div:last-child {
+            transform: scaleX(1) !important;
+        }
+        
+        .step-card-modern.active {
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--color-primary); }
+            50% { border-color: rgba(99, 102, 241, 0.5); }
+        }
+    </style>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // Three.js Scene Setup
+        let scene, camera, renderer, controls, mesh, gridHelper;
+        let isWireframe = false;
+        let showGrid = true;
+        
+        function initViewer() {
+            const container = document.getElementById('stl-canvas');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.Fog(0x0f172a, 10, 50);
+            
+            // Camera - Better initial angle for full view
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            const camPos = {{ current_step_data.camera_position|safe }};
+            // Position camera at a 45° angle for better perspective
+            camera.position.set(camPos.x * 1.2, camPos.y * 1.2, camPos.z * 1.2);
+            camera.lookAt(0, 0, 0); // Always look at center
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0x6366f1, 0.8);
+            directionalLight1.position.set(5, 10, 5);
+            directionalLight1.castShadow = true;
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xec4899, 0.4);
+            directionalLight2.position.set(-5, 5, -5);
+            scene.add(directionalLight2);
+            
+            const pointLight = new THREE.PointLight(0x14b8a6, 0.5);
+            pointLight.position.set(0, 3, 0);
+            scene.add(pointLight);
+            
+            // Grid
+            gridHelper = new THREE.GridHelper(10, 20, 0x6366f1, 0x334155);
+            gridHelper.material.opacity = 0.3;
+            gridHelper.material.transparent = true;
+            scene.add(gridHelper);
+            
+            // Controls - Full 360° rotation freedom
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 1;
+            controls.maxDistance = 10;
+            // Remove maxPolarAngle restriction to allow full 360° rotation
+            // controls.maxPolarAngle = Math.PI / 2; // REMOVED - was restricting view
+            controls.enablePan = true; // Allow panning
+            controls.enableZoom = true; // Allow zooming
+            controls.enableRotate = true; // Allow rotation
+            controls.autoRotate = false; // Disable auto-rotation (user controls)
+            
+            // Load STL Model
+            const loader = new STLLoader();
+            const stlUrl = '{{ stl_url }}';
+            
+            loader.load(
+                stlUrl,
+                function (geometry) {
+                    const material = new THREE.MeshPhongMaterial({
+                        color: 0x6366f1,
+                        specular: 0x111111,
+                        shininess: 100,
+                        side: THREE.DoubleSide
+                    });
+                    
+                    mesh = new THREE.Mesh(geometry, material);
+                    
+                    // Center and scale model
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    
+                    // Translate to center
+                    mesh.geometry.translate(-center.x, -center.y, -center.z);
+                    
+                    // ROTATE MODEL TO CORRECT ORIENTATION
+                    // The STL file has the robot at wrong angle
+                    // Rotate to make base parallel to ground (Z-plane)
+                    mesh.rotation.x = -Math.PI / 2; // Rotate 90° to lay flat on ground
+                    
+                    const box = new THREE.Box3().setFromObject(mesh);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 2 / maxDim;
+                    mesh.scale.setScalar(scale);
+                    
+                    // Move robot so base sits ON the ground, not through it
+                    mesh.position.y = (size.y * scale) / 2;
+                    
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    
+                    scene.add(mesh);
+                    
+                    // Add joint markers for visualization
+                    addJointMarkers();
+                    
+                    // Hide loading overlay
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    
+                    animate();
+                },
+                function (xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                function (error) {
+                    console.error('Error loading STL:', error);
+                    document.getElementById('loading-overlay').innerHTML = 
+                        '<i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #ef4444;"></i>' +
+                        '<p style="color: var(--color-danger); margin-top: 20px;">Failed to load 3D model</p>';
+                }
+            );
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+        
+        // Add visual joint markers on the robot
+        let jointMarkers = [];
+        function addJointMarkers() {
+            // Joint positions (approximate for SO-ARM100)
+            const joints = [
+                { id: 1, name: 'Base Rotation', position: {x: 0, y: 0.2, z: 0}, color: 0xff6b6b },
+                { id: 2, name: 'Shoulder Lift', position: {x: 0, y: 0.5, z: 0}, color: 0x4ecdc4 },
+                { id: 3, name: 'Elbow Flex', position: {x: 0.3, y: 0.7, z: 0}, color: 0x45b7d1 },
+                { id: 4, name: 'Wrist Flex', position: {x: 0.5, y: 0.6, z: 0}, color: 0xf7b731 },
+                { id: 5, name: 'Wrist Roll', position: {x: 0.65, y: 0.55, z: 0}, color: 0x5f27cd },
+                { id: 6, name: 'Gripper', position: {x: 0.75, y: 0.5, z: 0}, color: 0x00d2d3 }
+            ];
+            
+            joints.forEach(joint => {
+                // Create sphere for joint marker
+                const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: joint.color,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const marker = new THREE.Mesh(geometry, material);
+                marker.position.set(joint.position.x, joint.position.y, joint.position.z);
+                marker.userData = { jointId: joint.id, jointName: joint.name };
+                
+                // Add label sprite
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 128;
+                canvas.height = 128;
+                context.font = 'Bold 80px Arial';
+                context.fillStyle = 'white';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillText(joint.id.toString(), 64, 64);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(0.15, 0.15, 1);
+                sprite.position.set(joint.position.x, joint.position.y + 0.1, joint.position.z);
+                
+                scene.add(marker);
+                scene.add(sprite);
+                
+                jointMarkers.push({ marker, sprite, joint });
+            });
+        }
+        
+        // Highlight specific joint
+        let currentHighlight = null;
+        
+        const jointInfo = {
+            1: { name: 'Joint 1 - Base', desc: 'Base rotation joint - Rotates the entire arm horizontally (±180°)', color: '#ff6b6b' },
+            2: { name: 'Joint 2 - Shoulder', desc: 'Shoulder joint - Lifts and lowers the arm vertically (±90°)', color: '#4ecdc4' },
+            3: { name: 'Joint 3 - Elbow', desc: 'Elbow flex joint - Bends the arm forward and backward (±135°)', color: '#45b7d1' },
+            4: { name: 'Joint 4 - Wrist Flex', desc: 'Wrist flexion joint - Moves the wrist up and down (±180°)', color: '#f7b731' },
+            5: { name: 'Joint 5 - Wrist Roll', desc: 'Wrist rotation joint - Rotates the gripper (±180°)', color: '#5f27cd' },
+            6: { name: 'Joint 6 - Gripper', desc: 'End effector gripper - Opens and closes to grasp objects', color: '#00d2d3' }
+        };
+        
+        function highlightJoint(jointId) {
+            // Reset previous highlight
+            if (currentHighlight) {
+                currentHighlight.marker.material.emissive = new THREE.Color(0x000000);
+                currentHighlight.marker.material.emissiveIntensity = 0;
+                currentHighlight.marker.scale.setScalar(1);
+            }
+            
+            // Find and highlight new joint
+            const jointData = jointMarkers.find(j => j.joint.id === jointId);
+            if (jointData) {
+                // Make it VERY bright and glowing
+                jointData.marker.material.emissive = new THREE.Color(0xffffff);
+                jointData.marker.material.emissiveIntensity = 2.0;
+                jointData.marker.scale.setScalar(2.5);
+                currentHighlight = jointData;
+                
+                // Update info box
+                const info = jointInfo[jointId];
+                const infoBox = document.getElementById('joint-info-box');
+                const infoIcon = document.getElementById('joint-info-icon');
+                const infoName = document.getElementById('joint-info-name');
+                const infoDesc = document.getElementById('joint-info-desc');
+                
+                infoIcon.style.color = info.color;
+                infoName.textContent = info.name;
+                infoDesc.textContent = info.desc;
+                infoBox.classList.add('active');
+                
+                // Hide info box after 5 seconds
+                setTimeout(() => {
+                    infoBox.classList.remove('active');
+                }, 5000);
+                
+                // Add pulsing animation
+                let pulseCount = 0;
+                const pulseInterval = setInterval(() => {
+                    if (currentHighlight === jointData && pulseCount < 6) {
+                        const scale = 2.5 + Math.sin(pulseCount * Math.PI / 3) * 0.5;
+                        jointData.marker.scale.setScalar(scale);
+                        pulseCount++;
+                    } else {
+                        clearInterval(pulseInterval);
+                        if (currentHighlight === jointData) {
+                            jointData.marker.scale.setScalar(2.5);
+                        }
+                    }
+                }, 200);
+                
+                // Animate camera to focus on joint
+                const targetPos = jointData.marker.position;
+                const offset = 0.5;
+                camera.position.set(
+                    targetPos.x + offset,
+                    targetPos.y + offset,
+                    targetPos.z + offset
+                );
+                controls.target.copy(targetPos);
+                controls.update();
+            }
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            const container = document.getElementById('stl-canvas');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        function resetCamera() {
+            const camPos = {{ current_step_data.camera_position|safe }};
+            camera.position.set(camPos.x, camPos.y, camPos.z);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
+        
+        function toggleWireframe() {
+            if (mesh) {
+                isWireframe = !isWireframe;
+                mesh.material.wireframe = isWireframe;
+            }
+        }
+        
+        function toggleGrid() {
+            if (gridHelper) {
+                showGrid = !showGrid;
+                gridHelper.visible = showGrid;
+            }
+        }
+        
+        // Make functions globally accessible
+        window.resetCamera = resetCamera;
+        window.toggleWireframe = toggleWireframe;
+        window.toggleGrid = toggleGrid;
+        window.highlightJoint = highlightJoint;
+        
+        // Initialize viewer when page loads
+        window.addEventListener('DOMContentLoaded', initViewer);
+    </script>
+    
+    <script>
+        // Sidebar Toggle Functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('expanded');
+            
+            // Change icon based on state
+            const icon = toggleBtn.querySelector('i');
+            if (sidebar.classList.contains('hidden')) {
+                icon.className = 'fas fa-chevron-right';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+            
+            // Resize Three.js canvas when sidebar toggles
+            if (typeof onWindowResize === 'function') {
+                setTimeout(() => {
+                    onWindowResize();
+                }, 350); // Wait for transition to complete
+            }
+        }
+        
+        // Make toggleSidebar globally accessible
+        window.toggleSidebar = toggleSidebar;
+        
+        // Optional: Remember sidebar state in localStorage
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedState = localStorage.getItem('sidebarHidden');
+            if (savedState === 'true') {
+                toggleSidebar();
+            }
+        });
+        
+        // Save sidebar state when toggled
+        const originalToggle = window.toggleSidebar;
+        window.toggleSidebar = function() {
+            originalToggle();
+            const sidebar = document.getElementById('sidebar');
+            localStorage.setItem('sidebarHidden', sidebar.classList.contains('hidden'));
+        };
+    </script>
+</body>
+</html>

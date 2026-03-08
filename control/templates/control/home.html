@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Control - Premium Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🤖</div>
+                <h1 class="sidebar-title">RoboControl</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link active"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link"><i class="fas fa-robot"></i><span>Control</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Dashboard</h2>
+                <p class="header-subtitle">Welcome to your premium robotics control center. Monitor and manage your robotic systems with elegance.</p>
+            </header>
+
+            <!-- Statistics Cards - REAL DATA ONLY -->
+            <section class="grid-container grid-cols-4 fade-in-up" style="animation-delay: 100ms;">
+                <div class="stat-card">
+                    <div class="stat-card-icon {% if robots_connected == 0 %}style="background: var(--gradient-danger);"{% elif robots_connected == 1 %}style="background: var(--gradient-warning);"{% endif %}">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="stat-card-value">{{ robots_connected }}</div>
+                    <div class="stat-card-label">Connected Arms</div>
+                    <div style="margin-top: 8px;">
+                        {% if robot_status == "Online" %}
+                            <span class="badge badge-success"><i class="fas fa-circle pulse"></i> Online</span>
+                        {% elif robot_status == "Partial" %}
+                            <span class="badge badge-warning"><i class="fas fa-exclamation-circle"></i> Partial</span>
+                        {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Offline</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-success);">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-card-value" style="background: var(--gradient-success); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ ai_model_count }}</div>
+                    <div class="stat-card-label">Trained Models</div>
+                    <div style="margin-top: 8px;">
+                        {% if ai_model_count > 0 %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> Ready</span>
+                        {% else %}
+                            <span class="badge badge-secondary"><i class="fas fa-info-circle"></i> None</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-secondary);">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="stat-card-value" style="background: var(--gradient-secondary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ camera_count }}</div>
+                    <div class="stat-card-label">Detected Cameras</div>
+                    <div style="margin-top: 8px;">
+                        {% if camera_count > 0 %}
+                            <span class="badge badge-success"><i class="fas fa-camera"></i> Active</span>
+                        {% else %}
+                            <span class="badge badge-secondary"><i class="fas fa-camera-slash"></i> None</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: var(--gradient-danger);">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="stat-card-value" style="background: var(--gradient-danger); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        {% if total_data_points >= 1000 %}
+                            {{ total_data_points|floatformat:1|stringformat:"s"|slice:"-4:" }}K
+                        {% else %}
+                            {{ total_data_points }}
+                        {% endif %}
+                    </div>
+                    <div class="stat-card-label">Data Points</div>
+                    <div style="margin-top: 8px;">
+                        <span class="badge badge-info"><i class="fas fa-file"></i> {{ dataset_count }} Dataset{{ dataset_count|pluralize }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feature Cards -->
+            <section class="grid-container grid-cols-3 fade-in-up" style="animation-delay: 200ms;">
+                <div class="feature-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-robot"></i> Real Robot Control</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-3">Directly manipulate and monitor your hardware in real-time with precision control and live feedback.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'control:manipulation' %}?mode=real" class="btn btn-primary w-100">
+                            <i class="fas fa-play"></i>
+                            <span>Start Control</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-vr-cardboard"></i> MuJoCo Simulation</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-3">Train and test in a fast, reliable physics simulation environment before deploying to hardware.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'control:manipulation' %}?mode=simulation" class="btn btn-secondary">Launch Sim</a>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'control:manipulation' %}?mode=sim" class="btn btn-secondary w-100">
+                            <i class="fas fa-flask"></i>
+                            <span>Launch Simulation</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-brain"></i> AI Training</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-3">Collect datasets and train advanced AI models for autonomous robotic manipulation.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'control:train' %}" class="btn btn-success w-100">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Train Models</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="grid-container grid-cols-2 fade-in-up" style="animation-delay: 300ms;">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <a href="{% url 'control:robot_connection' %}" class="btn btn-outline w-100">
+                                <i class="fas fa-plug"></i>
+                                <span>Connect Robots</span>
+                            </a>
+                            <a href="{% url 'control:calibrate' %}" class="btn btn-outline w-100">
+                                <i class="fas fa-cogs"></i>
+                                <span>Calibrate Systems</span>
+                            </a>
+                            <a href="{% url 'control:cameras' %}" class="btn btn-outline w-100">
+                                <i class="fas fa-video"></i>
+                                <span>View Camera Feeds</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-info-circle"></i> System Status - LIVE</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary">Leader Arm</span>
+                                {% if has_config and robot_status != "Offline" %}
+                                    <span class="badge badge-success">
+                                        <span class="status-indicator status-online"></span>
+                                        Connected
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <span class="status-indicator status-offline"></span>
+                                        Offline
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary">Follower Arm</span>
+                                {% if robot_status == "Online" %}
+                                    <span class="badge badge-success">
+                                        <span class="status-indicator status-online"></span>
+                                        Connected
+                                    </span>
+                                {% elif robot_status == "Partial" %}
+                                    <span class="badge badge-warning">
+                                        <span class="status-indicator status-offline"></span>
+                                        Not Connected
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <span class="status-indicator status-offline"></span>
+                                        Offline
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary">Camera System</span>
+                                {% if camera_count > 0 %}
+                                    <span class="badge badge-success">
+                                        <span class="status-indicator status-online"></span>
+                                        {{ camera_count }} Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary">
+                                        <span class="status-indicator status-offline"></span>
+                                        No Cameras
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary">Calibration</span>
+                                {% if is_calibrated %}
+                                    <span class="badge badge-success">
+                                        <span class="status-indicator status-online"></span>
+                                        Calibrated
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        <span class="status-indicator status-offline"></span>
+                                        Not Calibrated
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary">AI Models</span>
+                                {% if ai_model_count > 0 %}
+                                    <span class="badge badge-primary">
+                                        <span class="status-indicator status-online"></span>
+                                        {{ ai_model_count }} Ready
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary">
+                                        <span class="status-indicator status-offline"></span>
+                                        Not Trained
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Manipulation - Advanced Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'control/css/modern-ui.css' %}">
+</head>
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">R</div>
+                <h1 class="sidebar-title">Robotics App</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item"><a href="{% url 'control:home' %}" class="nav-link"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:robot_connection' %}" class="nav-link"><i class="fas fa-plug"></i><span>Connection</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:manipulation' %}" class="nav-link active"><i class="fas fa-robot"></i><span>Manipulation</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:calibrate' %}" class="nav-link"><i class="fas fa-cogs"></i><span>Calibration</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:train' %}" class="nav-link"><i class="fas fa-brain"></i><span>AI Training</span></a></li>
+                    <li class="nav-item"><a href="{% url 'control:cameras' %}" class="nav-link"><i class="fas fa-video"></i><span>Cameras</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header fade-in">
+                <h2 class="header-title">Robot Manipulation</h2>
+                <p class="header-subtitle">Direct, real-time control and teleoperation.</p>
+            </header>
+
+            <div class="row">
+                <!-- Left Column: Camera and Logs -->
+                <div class="col-md-8">
+                    <div class="card fade-in-up" style="animation-delay: 100ms;">
+                        <div class="card-header">
+                            <h3 class="card-title">Live Camera Feed</h3>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <img id="video-feed" src="{% static 'control/images/placeholder.png' %}" alt="Live Feed" style="width: 100%; display: block; background-color: #222;">
+                        </div>
+                    </div>
+                    <div class="card fade-in-up mt-4" style="animation-delay: 200ms;">
+                        <div class="card-header">
+                            <h3 class="card-title">System Logs</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="log-box" class="code-block" style="height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Controls -->
+                <div class="col-md-4">
+                    <div class="card fade-in-up" style="animation-delay: 300ms;">
+                        <div class="card-header">
+                            <h3 class="card-title">Control Panel</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="control-mode" class="form-label">Control Mode</label>
+                                <select id="control-mode" class="form-control">
+                                    <option value="leader">Leader/Follower</option>
+                                    <option value="keyboard">Keyboard</option>
+                                    <option value="manual">Manual Joints</option>
+                                </select>
+                            </div>
+                            <div class="mt-3">
+                                <button id="home-robot-btn" class="btn btn-secondary w-100">Home Robot</button>
+                                <button id="emergency-stop-btn" class="btn btn-danger w-100 mt-2">Emergency Stop</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="keyboard-controls" class="card fade-in-up mt-4" style="animation-delay: 400ms; display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">Keyboard Control</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <p>Click here and use arrow keys to control the robot.</p>
+                            <div class="keyboard-info">
+                                <strong>Arrows:</strong> Move X/Y | <strong>Shift/Ctrl:</strong> Move Z | <strong>Space:</strong> Gripper
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="manual-controls" class="card fade-in-up mt-4" style="animation-delay: 400ms; display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">Manual Joint Control</h3>
+                        </div>
+                        <div id="joint-sliders" class="card-body">
+                            <!-- Joint sliders will be dynamically inserted here -->
+                            <p>Connect to a robot to see joint controls.</p>
+                        </div>
+                    </div>
+
+                    <div class="card fade-in-up mt-4" style="animation-delay: 500ms;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0">Motion Recording</h3>
+                            <span id="recording-status" class="badge badge-secondary">IDLE</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Record a sequence of movements to be replayed later.</p>
+                            <div class="btn-group w-100" role="group">
+                                <button id="record-motion-btn" class="btn btn-primary">Start Recording</button>
+                                <button id="replay-motion-btn" class="btn btn-success" disabled>Replay Last</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logBox = document.getElementById('log-box');
+            const controlModeSelect = document.getElementById('control-mode');
+            const keyboardControls = document.getElementById('keyboard-controls');
+            const manualControls = document.getElementById('manual-controls');
+            const recordBtn = document.getElementById('record-motion-btn');
+            const replayBtn = document.getElementById('replay-motion-btn');
+            const recordingStatus = document.getElementById('recording-status');
+            let isRecording = false;
+            let lastMotionId = null;
+
+            function log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                logEntry.innerHTML = `<span>[${timestamp}]</span> ${message}`;
+                logBox.appendChild(logEntry);
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+
+            controlModeSelect.addEventListener('change', function() {
+                const mode = this.value;
+                log(`Switched to ${mode} control mode.`);
+                keyboardControls.style.display = mode === 'keyboard' ? 'block' : 'none';
+                manualControls.style.display = mode === 'manual' ? 'block' : 'none';
+            });
+
+            // Initialize view
+            controlModeSelect.dispatchEvent(new Event('change'));
+            log('Manipulation interface loaded.');
+            log('Please connect and calibrate a robot to begin.');
+
+            // Keyboard event handling
+            keyboardControls.addEventListener('keydown', handleKeyEvent);
+            keyboardControls.addEventListener('keyup', handleKeyEvent);
+
+            function handleKeyEvent(event) {
+                event.preventDefault();
+                const key = event.key;
+                const pressed = event.type === 'keydown';
+                
+                // Only send API request if in keyboard mode
+                if (controlModeSelect.value === 'keyboard') {
+                    log(`Key ${pressed ? 'pressed' : 'released'}: ${key}`);
+                    // API call to send keyboard state
+                    fetch("{% url 'control:keyboard_input_api' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ key: key, pressed: pressed })
+                    }).then(res => res.json()).then(data => {
+                        if (!data.success) {
+                            log(`Keyboard input error: ${data.error}`, 'error');
+                        }
+                    });
+                }
+            }
+            
+            // Make the div focusable
+            keyboardControls.setAttribute('tabindex', 0);
+
+            recordBtn.addEventListener('click', function() {
+                isRecording = !isRecording;
+                const action = isRecording ? 'start' : 'stop';
+                
+                fetch(`/api/record_motion/${action}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({})
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        if (isRecording) {
+                            log('Started motion recording.', 'special');
+                            recordBtn.textContent = 'Stop Recording';
+                            recordBtn.classList.add('btn-warning');
+                            recordingStatus.textContent = 'RECORDING';
+                            recordingStatus.classList.replace('badge-secondary', 'badge-danger');
+                            replayBtn.disabled = true;
+                        } else {
+                            log(`Stopped recording. Motion ID: ${data.motion_pattern_id}`, 'special');
+                            recordBtn.textContent = 'Start Recording';
+                            recordBtn.classList.remove('btn-warning');
+                            recordingStatus.textContent = 'IDLE';
+                            recordingStatus.classList.replace('badge-danger', 'badge-secondary');
+                            lastMotionId = data.motion_pattern_id;
+                            replayBtn.disabled = false;
+                        }
+                    } else {
+                        log(`Error: ${data.error}`, 'error');
+                        isRecording = !isRecording; // Revert state on error
+                    }
+                });
+            });
+
+            replayBtn.addEventListener('click', function() {
+                if (!lastMotionId) {
+                    log('No motion recorded yet to replay.', 'warning');
+                    return;
+                }
+                log(`Requesting replay of motion ID: ${lastMotionId}`, 'special');
+                replayBtn.disabled = true;
+                replayBtn.textContent = 'Replaying...';
+
+                fetch(`/api/replay_motion/${lastMotionId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        log('Motion replay completed successfully.', 'special');
+                    } else {
+                        log(`Replay failed: ${data.error}`, 'error');
+                    }
+                    replayBtn.disabled = false;
+                    replayBtn.textContent = 'Replay Last';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
